@@ -2,25 +2,32 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import cors from "cors";
 
 //creating instances
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
 
-//serving the static file
-app.use(express.static("public"));
+//middleware
+app.use(cors());
 
-//create a connection
+//socket io stuff
 io.on("connection", (client) => {
-  console.log("User connected!");
+  console.log("New Client connected!");
 
-  client.on("chat message", (msg) => {
-    io.emit("chat message", msg);
+  client.on("message", (message) => {
+    console.log(`Message received, ${message}`);
+    io.emit("message", message);
   });
 
   client.on("disconnect", () => {
-    console.log("User disconnected!");
+    console.log("Client disconnected!");
   });
 });
 
